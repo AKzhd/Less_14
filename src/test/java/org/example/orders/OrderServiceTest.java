@@ -61,4 +61,30 @@ class OrderServiceTest {
     void emptyCart() {
         assertEquals(0.0, service.calc(List.of(), "REGULAR"), 0.0001);
     }
+    @Test
+    @DisplayName("Больше 10 товаров: дополнительная скидка 1%")
+    void moreThanTenItemsExtraDiscount() {
+        List<Item> items = List.of(new Item("A", 100.0, 11));
+        // 1100 * 0.99 = 1089; 1089 > 1000 => 1089 - 50 = 1039
+        assertEquals(1039.0, service.calc(items, "REGULAR"), 0.0001);
+    }
+
+    @Test
+    @DisplayName("Ровно 10 товаров: дополнительная скидка не применяется")
+    void exactlyTenItemsNoExtraDiscount() {
+        List<Item> items = List.of(new Item("A", 100.0, 10));
+        // 1000, не больше 1000 => без вычета
+        assertEquals(1000.0, service.calc(items, "REGULAR"), 0.0001);
+    }
+
+    @Test
+    @DisplayName("Больше 10 товаров + VIP: обе скидки")
+    void moreThanTenItemsWithVip() {
+        List<Item> items = List.of(new Item("A", 100.0, 11));
+        // 1100 * 0.9 = 990; 990 * 0.99 = 980.1; 980.1 < 1000 => без вычета
+        assertEquals(980.1, service.calc(items, "VIP"), 0.0001);
+    }
+
+
+
 }
