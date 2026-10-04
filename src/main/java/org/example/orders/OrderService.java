@@ -16,6 +16,9 @@ public class OrderService {
     private static final double LARGE_ORDER_THRESHOLD = 1000.0;
     private static final double LARGE_ORDER_DEDUCTION = 50.0;
 
+    private static final int BULK_ITEMS_THRESHOLD = 10;
+    private static final double BULK_ITEMS_DISCOUNT = 0.99;
+
     /**
      * Рассчитывает итоговую стоимость заказа с учётом скидок.
      *
@@ -25,6 +28,8 @@ public class OrderService {
      *         ({@code price * quantity}).</li>
      *     <li>Применяется процентная скидка в зависимости от типа клиента:
      *         {@code VIP} — 10%, {@code NEW} — 5%.</li>
+     *     <li>Если суммарное количество единиц товара в заказе больше 10,
+     *         применяется дополнительная скидка 1%.</li>
      *     <li>Если итоговая сумма превышает 1000, вычитается фиксированная
      *         скидка 50.</li>
      * </ol>
@@ -37,6 +42,7 @@ public class OrderService {
     public double calc(List<Item> items, String type) {
         double total = calculateSubtotal(items);
         total = applyCustomerDiscount(total, type);
+        total = applyBulkItemsDiscount(total, items);
         total = applyLargeOrderDeduction(total);
         return total;
     }
@@ -59,10 +65,25 @@ public class OrderService {
         return total;
     }
 
+    private double applyBulkItemsDiscount(double total, List<Item> items) {
+        if (countItems(items) > BULK_ITEMS_THRESHOLD) {
+            return total * BULK_ITEMS_DISCOUNT;
+        }
+        return total;
+    }
+
     private double applyLargeOrderDeduction(double total) {
         if (total > LARGE_ORDER_THRESHOLD) {
             return total - LARGE_ORDER_DEDUCTION;
         }
         return total;
+    }
+
+    private int countItems(List<Item> items) {
+        int count = 0;
+        for (Item item : items) {
+            count += item.getQuantity();
+        }
+        return count;
     }
 }
