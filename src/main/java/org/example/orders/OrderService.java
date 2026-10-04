@@ -2,7 +2,20 @@ package org.example.orders;
 
 import java.util.List;
 
+/**
+ * Сервис расчёта стоимости заказа.
+ */
 public class OrderService {
+
+    private static final String VIP = "VIP";
+    private static final String NEW = "NEW";
+
+    private static final double VIP_DISCOUNT = 0.9;
+    private static final double NEW_DISCOUNT = 0.95;
+
+    private static final double LARGE_ORDER_THRESHOLD = 1000.0;
+    private static final double LARGE_ORDER_DEDUCTION = 50.0;
+
     /**
      * Рассчитывает итоговую стоимость заказа с учётом скидок.
      *
@@ -21,25 +34,35 @@ public class OrderService {
      *              — тогда скидка не применяется)
      * @return итоговая стоимость заказа
      */
-
     public double calc(List<Item> items, String type) {
-        double s = 0;
-        for (Item i : items) {
-            s += i.getPrice() * i.getQuantity();
-        }
+        double total = calculateSubtotal(items);
+        total = applyCustomerDiscount(total, type);
+        total = applyLargeOrderDeduction(total);
+        return total;
+    }
 
-        if (type.equals("VIP")) {
-            s = s * 0.9;
+    private double calculateSubtotal(List<Item> items) {
+        double subtotal = 0;
+        for (Item item : items) {
+            subtotal += item.getPrice() * item.getQuantity();
         }
+        return subtotal;
+    }
 
-        if (type.equals("NEW")) {
-            s = s * 0.95;
+    private double applyCustomerDiscount(double total, String type) {
+        if (VIP.equals(type)) {
+            return total * VIP_DISCOUNT;
         }
-
-        if (s > 1000) {
-            s = s - 50;
+        if (NEW.equals(type)) {
+            return total * NEW_DISCOUNT;
         }
+        return total;
+    }
 
-        return s;
+    private double applyLargeOrderDeduction(double total) {
+        if (total > LARGE_ORDER_THRESHOLD) {
+            return total - LARGE_ORDER_DEDUCTION;
+        }
+        return total;
     }
 }
